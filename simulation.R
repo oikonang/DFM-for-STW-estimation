@@ -1,10 +1,13 @@
+###############################################
+################ Load libraries ###############
+###############################################
 library("scales")
 library("KFAS")
 library("latex2exp")
 set.seed(12) #12 #123 #1234 #234 #2345
 
 ###############################################
-############# Simulation functions ############
+######### Measurement noise scenarios #########
 ###############################################
 iid <- function(n, se, lambda, t, speed) {
   # n : scalar
@@ -82,20 +85,20 @@ nse <- function(n, se, lambda, t, speed) {
 }
 
 ###############################################
-################ Factor Models ################
+############ Dynamic Factor Models ############
 ###############################################
 
 ssm1 <- function(ys){
   ##### Model Design ######
-  Z <- rbind(c(1),            # This is H
+  Z <- rbind(c(1),            # H matrix in paper's notation
              c(NA),
              c(NA))
   p <- ncol(Z)
   q <- nrow(Z)
-  H <- matrix(0,q,q)          # This is R
+  H <- matrix(0,q,q)          # R matrix in paper's notation
 
-  Q <- cbind(rep(NA,p))       # This is Q
-  T <- cbind(rep(1,p))        # This is F
+  Q <- cbind(rep(NA,p))       # Q matrix in paper's notation
+  T <- cbind(rep(1,p))        # F matrix in paper's notation
   a0 <- cbind(rep(0,p))
   P0 <- cbind(rep(1e3,p))
 
@@ -128,15 +131,15 @@ ssm1 <- function(ys){
 
 ssm2 <- function(ys){
   ##### Model Design ######
-  Z <- rbind(c(1,0,0),
+  Z <- rbind(c(1,0,0),           # H matrix in paper's notation
              c(NA,1,0),
              c(NA,0,1))
   p <- ncol(Z)
   q <- nrow(Z)
-  H <- matrix(0,q,q)
+  H <- matrix(0,q,q)             # R matrix in paper's notation
   
-  Q <- diag(rep(NA,p))*1
-  T <- diag(c(1,rep(NA,p-1)))
+  Q <- diag(rep(NA,p))*1         # Q matrix in paper's notation
+  T <- diag(c(1,rep(NA,p-1)))    # F matrix in paper's notation
   a0 <- cbind(rep(0,p))
   P0 <- diag(rep(1e3,p))
   
@@ -172,15 +175,15 @@ ssm2 <- function(ys){
 
 ssm3 <- function(ys){
   ##### Model Design ######
-  Z <- rbind(c(1,0,0,1,0,0), 
+  Z <- rbind(c(1,0,0,1,0,0),    # H matrix in paper's notation
              c(NA,1,0,0,1,0),
              c(NA,0,1,0,0,1))
   p <- ncol(Z)
   q <- nrow(Z)
-  H <- matrix(0,q,q)
+  H <- matrix(0,q,q)            # R matrix in paper's notation
   
-  Q <- diag(rep(NA,p))*1
-  T <- diag(p)
+  Q <- diag(rep(NA,p))*1        # Q matrix in paper's notation
+  T <- diag(p)                  # F matrix in paper's notation
   a0 <- cbind(rep(0,p))
   P0 <- diag(rep(1e3,p))
   
@@ -290,7 +293,7 @@ plot.results <- function(res,title, estimate=FALSE, out=NA, model_name=NA, relat
 ######## Data and estimate generation #########
 ###############################################
 # Generate a simulation with iid noise
-iid_res <- iid(n=2e3, se=cbind(1,1,1), lambda=rep(1, 3),  # Change to se=cbind(0.5,1,2) to get closer to reality
+iid_res <- iid(n=2e3, se=cbind(1,1,1), lambda=rep(1, 3),  # Change to se=cbind(0.5,1,2) for real data noise scenario
                t=seq(0, 6*pi, length.out=2e3), speed=15)
 iid_ssm1_out <- ssm1(iid_res$ys)   # 1-factor model
 iid_ssm2_out <- ssm2(iid_res$ys)   # 3-factors model
@@ -298,7 +301,7 @@ iid_ssm3_out <- ssm3(iid_res$ys)   # 3-factors model with AR(1) meas. noise
 
 
 # Generate a simulation with AR1 noise
-AR1_res <- AR1(n=2e3, se=cbind(1,1,1),                    # Change to se=cbind(0.5,1,2) to get closer to reality
+AR1_res <- AR1(n=2e3, se=cbind(1,1,1),                    # Change to se=cbind(0.5,1,2) for real data noise scenario
                theta=rep(.1, 3), lambda=rep(1, 3),       
                t=seq(0, 6*pi, length.out=2e3), speed=15)
 AR1_ssm1_out <- ssm1(AR1_res$ys)    # 1-factor model
@@ -307,7 +310,7 @@ AR1_ssm3_out <- ssm3(AR1_res$ys)    # 3-factors model with AR(1) meas. noise
 
 
 # Generate a simulation with non-stationary measurement noise
-nse_res <- nse(n=2e3, se=cbind(1,1,1), lambda=rep(1, 3),  # Change to se=cbind(0.5,1,2) to get closer to reality
+nse_res <- nse(n=2e3, se=cbind(1,1,1), lambda=rep(1, 3),  # Change to se=cbind(0.5,1,2) for real data noise scenario
                t=seq(0, 6*pi, length.out=2e3), speed=15)
 nse_ssm1_out <- ssm1(nse_res$ys)    # 1-factor model
 nse_ssm2_out <- ssm2(nse_res$ys)    # 3-factors model
@@ -317,19 +320,19 @@ nse_ssm3_out <- ssm3(nse_res$ys)    # 3-factors model with AR(1) meas. noise
 ###############################################
 ############## Plotting results ###############
 ###############################################
-# Generate iid results from all models
+# Generate iid noise scenario results from all models
 plot.results(iid_res,"Independent and identically distributed (i.i.d.) noise") #relativeRMSE=TRUE
 plot.results(iid_res,"Independent and identically distributed (i.i.d.) noise",estimate=TRUE,iid_ssm1_out$a[,1],'SSM #1')
 plot.results(iid_res,"Independent and identically distributed (i.i.d.) noise",estimate=TRUE,iid_ssm2_out$a[,1],'SSM #2') 
 plot.results(iid_res,"Independent and identically distributed (i.i.d.) noise",estimate=TRUE,iid_ssm3_out$a[,1],'SSM #3') 
 
-# Generate AR1 results from all models
+# Generate AR1 noise scenario results from all models
 plot.results(AR1_res,"AR(1) noise")
 plot.results(AR1_res,"AR(1) noise",estimate=TRUE,AR1_ssm1_out$a[,1],'SSM #1')
 plot.results(AR1_res,"AR(1) noise",estimate=TRUE,AR1_ssm2_out$a[,1],'SSM #2')
 plot.results(AR1_res,"AR(1) noise",estimate=TRUE,AR1_ssm3_out$a[,1],'SSM #3') 
 
-# Generate AR2 results from all models
+# Generate non stationary noise scenario results from all models
 plot.results(nse_res,"Non stationary (n.s.) noise")
 plot.results(nse_res,"Non stationary (n.s.) noise",estimate=TRUE,nse_ssm1_out$a[,1],'SSM #1')
 plot.results(nse_res,"Non stationary (n.s.) noise",estimate=TRUE,nse_ssm2_out$a[,1],'SSM #2') 
