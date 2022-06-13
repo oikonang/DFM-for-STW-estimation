@@ -4,7 +4,7 @@ This repo is built to enhance the simulation part of the open-access paper named
 
 Authors:   
 *Angelos Ikonomakis*     
-*Klaus K\"{a}hler Holst*     
+*Klaus Kähler Holst*     
 *Ulrik Dam Nielsen*    
 
 
